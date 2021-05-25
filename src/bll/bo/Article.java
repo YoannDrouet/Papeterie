@@ -11,6 +11,9 @@ package bll.bo;
  *     <li><b>prixUnitaire : </b>Son prix unitaire</li>
  *     <li><b>qteStock : </b>La quantité de cette article qu'il y a en stock</li>
  * </ul>
+ *
+ * @date 25/05/2021
+ * @author Yoann Drouet
  */
 public abstract class Article {
     private int idArticle;

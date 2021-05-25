@@ -6,6 +6,9 @@ package bll.bo;
  * <ul>
  *     <li><b>couleur : </b>La couleur du stylo</li>
  * </ul>
+ *
+ * @date 25/05/2021
+ * @author Yoann Drouet
  */
 public class Stylo extends Article{
     private String couleur;

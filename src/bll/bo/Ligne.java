@@ -7,6 +7,9 @@ package bll.bo;
  *     <li><b>article : </b>L'article que le client souhaite acheter</li>
  *     <li><b>qte : </b>La quantité de cet article</li>
  * </ul>
+ *
+ * @date 25/05/2021
+ * @author Yoann Drouet
  */
 public class Ligne {
     private Article article;

@@ -6,6 +6,9 @@ package bll.bo;
  * <ul>
  *     <li><b>grammage : </b>Le poids de la ramette</li>
  * </ul>
+ *
+ * @date 25/05/2021
+ * @author Yoann Drouet
  */
 public class Ramette extends Article{
     private int grammage;
