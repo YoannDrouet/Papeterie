@@ -18,8 +18,8 @@ public class Stylo extends Article{
         this.couleur = couleur;
     }
 
-    public Stylo(int idArticle, String reference, String designation, float prixUnitaire, int qteStock, String couleur) {
-        super(idArticle, reference, designation, prixUnitaire, qteStock);
+    public Stylo(String reference, String marque, String designation, float prixUnitaire, int qteStock, String couleur) {
+        super(reference, marque, designation, prixUnitaire, qteStock);
         this.couleur = couleur;
     }
 

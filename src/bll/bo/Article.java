@@ -32,9 +32,9 @@ public abstract class Article {
         this.qteStock = qteStock;
     }
 
-    public Article(int idArticle, String reference, String designation, float prixUnitaire, int qteStock) {
-        this.idArticle = idArticle;
+    public Article(String reference, String marque, String designation, float prixUnitaire, int qteStock) {
         this.reference = reference;
+        this.marque = marque;
         this.designation = designation;
         this.prixUnitaire = prixUnitaire;
         this.qteStock = qteStock;
