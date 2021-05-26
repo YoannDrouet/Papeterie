@@ -29,11 +29,11 @@ public class Ligne {
     }
 
     /**
-     * Multiplie le prix unitaire de l'article et la quantité souhaité pour avoir le montant de la ligne
-     * @return le prix total de la ligne
+     * Renvoie le prix unitaire de l'article
+     * @return le prix unitaire
      */
     public float getPrix(){
-        return this.article.getPrixUnitaire()*this.qte;
+        return this.article.getPrixUnitaire();
     }
 
     public void setQte(int qte) {

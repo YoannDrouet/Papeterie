@@ -51,9 +51,7 @@ public class Panier {
      * @param newQte - La nouvelle quantité de cet article
      */
     public void updateLigne(int index, int newQte){
-        Ligne ligne = getLigne(index);
-        ligne.setQte(newQte);
-        this.lignesPanier.set(index, ligne);
+        this.lignesPanier.get(index).setQte(newQte);
     }
 
     /**
