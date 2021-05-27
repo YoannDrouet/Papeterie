@@ -23,6 +23,14 @@ public class Ramette extends Article{
         this.grammage = grammage;
     }
 
+    public int getGrammage() {
+        return grammage;
+    }
+
+    public void setGrammage(int grammage) {
+        this.grammage = grammage;
+    }
+
     @Override
     public String toString() {
         String s = "Ramette " + this.grammage + "g ";
