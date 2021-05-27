@@ -65,7 +65,6 @@ public class AppliTestDAL {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 	
 

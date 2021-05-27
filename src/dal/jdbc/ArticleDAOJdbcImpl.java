@@ -20,33 +20,24 @@ public class ArticleDAOJdbcImpl {
     public Article selectById(Integer idArticle){
         Article retour = null;
         //Ecriture de la requête SQL permettant de selectionner l'article recherché
-        String sql = "SELECT * FROM Articles WHERE idArticle = " + idArticle + ";";
+        String sql = "SELECT * FROM Articles WHERE idArticle = ?;";
 
         try (Connection connection = DriverManager.getConnection(this.URL)) {
 
-            Statement unStm = connection.createStatement();
+            PreparedStatement unStm = connection.prepareStatement(sql);
+            unStm.setInt(1, idArticle);
             //Affecte à la variable retour l'article trouvé
-            ResultSet rs = unStm.executeQuery(sql);
+            ResultSet rs = unStm.executeQuery();
 
             //Vérifie si l'article que l'on a rechercher est un stylo ou une ramette
             if (rs.getString("couleur") != null){
                 //Si c'est un stylo on crée un stylo
-                retour = new Stylo(rs.getInt("idArticle"),
-                        rs.getString("reference"),
-                        rs.getString("marque"),
-                        rs.getString("designation"),
-                        rs.getFloat("prixUnitaire"),
-                        rs.getInt("qteStock"),
-                        rs.getString("couleur"));
+                //Appel d'une méthode commune qui permet de créer un stylo avec les paramètre d'un ReseltSet
+                retour = communConstructeurStylo(rs);
             } else {
                 //Si c'est une ramette on crée une ramette
-                retour = new Ramette(rs.getInt("idArticle"),
-                        rs.getString("reference"),
-                        rs.getString("marque"),
-                        rs.getString("designation"),
-                        rs.getFloat("prixUnitaire"),
-                        rs.getInt("qteStock"),
-                        rs.getInt("grammage"));
+                //Appel d'une méthode commune qui permet de créer un ramette avec les paramètre d'un ReseltSet
+                retour = communConstructeurRamette(rs);
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -76,22 +67,12 @@ public class ArticleDAOJdbcImpl {
                 Article a;
                 if (rs.getString("couleur") != null){
                     //Si c'est un stylo utilise le constructeur de la classe Stylo
-                    a = new Stylo(rs.getInt("idArticle"),
-                                rs.getString("reference"),
-                                rs.getString("marque"),
-                                rs.getString("designation"),
-                                rs.getFloat("prixUnitaire"),
-                                rs.getInt("qteStock"),
-                                rs.getString("couleur"));
+                    //Appel d'une méthode commune qui permet de créer un stylo avec les paramètre d'un ReseltSet
+                    a = communConstructeurStylo(rs);
                 }else {
                     //Si c'est une ramette utilise le constructeur de la classe Ramette
-                    a = new Ramette(rs.getInt("idArticle"),
-                            rs.getString("reference"),
-                            rs.getString("marque"),
-                            rs.getString("designation"),
-                            rs.getFloat("prixUnitaire"),
-                            rs.getInt("qteStock"),
-                            rs.getInt("grammage"));
+                    //Appel d'une méthode commune qui permet de créer un ramette avec les paramètre d'un ReseltSet
+                    a = communConstructeurRamette(rs);
                 }
                 //ajoute l'article à la liste que l'on souhaite renvoyer
                 retour.add(a);
@@ -110,30 +91,34 @@ public class ArticleDAOJdbcImpl {
      */
     public void update(Article a){
         //Requête de base pour insérer, partie commune aux stylos et au ramettes
-        String sql = "UPDATE Articles SET " +
-                "reference = '" + a.getReference() + "'," +
-                "marque = '" + a.getMarque() + "'," +
-                "designation = '" + a.getDesignation() + "'," +
-                "prixUnitaire = " + a.getPrixUnitaire() + "," +
-                "qteStock = " + a.getQteStock() + ",";
+
+        String sql = "UPDATE Articles SET reference=?, marque=?, designation=?, prixUnitaire=?," +
+                "qteStock=?, ";
 
         //On vérifie si l'article en paramètre est un stylo où un ramette
         if (a instanceof Stylo){
             //On ajoute à la requête la partie spécifique aux stylos
-            sql += "couleur = '" + ((Stylo) a).getCouleur() + "' ";
+            sql += "couleur=? ";
         } else{
             //On ajoute à la requête la partie spécifique aux ramettes
-            sql += "grammage = " + ((Ramette) a).getGrammage() + " ";
+            sql += "grammage=? ";
         }
 
         //Précise qu'on ne veut modifier que l'article ayant cette id
-        sql += "WHERE idArticle = " + a.getIdArticle() + ";";
+        sql += "WHERE idArticle=?;";
 
         try (Connection connection = DriverManager.getConnection(this.URL)) {
-            //Créer un état permettant d'intéraagir avec la base
-            Statement unStm = connection.createStatement();
-            //Stock le résultat de la requête
-            unStm.executeUpdate(sql);
+            //Créer un état permettant d'intéragir avec la base
+            //Appel d'une méthode pour remplir la partie commune du PreparedStatement
+            PreparedStatement unStm = communPreparedStatement(a, sql, connection);
+
+            if (a instanceof Stylo){
+                unStm.setString(6, ((Stylo) a).getCouleur());
+            } else{
+                unStm.setInt(6, ((Ramette) a).getGrammage());
+            }
+
+            unStm.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -145,41 +130,26 @@ public class ArticleDAOJdbcImpl {
      */
     public void insert(Article a){
         //Requête de base pour insérer, partie commune aux stylos et au ramettes
-        String sql = "INSERT INTO Articles(" +
-                "reference," +
-                "marque," +
-                "designation," +
-                "prixUnitaire," +
-                "qteStock," +
-                "grammage," +
-                "couleur," +
-                "type) VALUES ('" +
-                a.getReference() + "','" +
-                a.getMarque() + "','" +
-                a.getDesignation() + "',"+
-                a.getPrixUnitaire() + "," +
-                a.getQteStock() + ",";
-
-        //On vérifie si l'article en paramètre est un stylo où un ramette
-        if (a instanceof Stylo){
-            //Rajoute la partie de requête spécifique aux stylos
-            Integer grammage = null;
-            sql += grammage + ",'" +
-                    ((Stylo) a).getCouleur() + "'," +
-                    "'Stylo');";
-        } else{
-            //Rajoute la partie de requête spécifique aux ramettes
-            String couleur = null;
-            sql += ((Ramette) a).getGrammage() + "," +
-                    couleur + "," +
-                    "'Ramette');";
-        }
+        String sql = "INSERT INTO Articles (reference, marque, designation, prixUnitaire, qteStock, " +
+                "grammage, couleur, type) VALUES (?,?,?,?,?,?,?,?);";
 
         try (Connection connection = DriverManager.getConnection(this.URL)){
             //Créer un état permettant d'intéraagir avec la base
-            Statement unStm = connection.createStatement();
-            //Stock le résultat de la requête
-            unStm.executeUpdate(sql);
+            //Appel d'une méthode pour remplir la partie commune du PreparedStatement
+            PreparedStatement unStm = communPreparedStatement(a, sql, connection);
+
+            //On vérifie si l'article en paramètre est un stylo où un ramette
+            if (a instanceof Stylo){
+                //Rajoute la partie de requête spécifique aux stylos
+                unStm.setString(7, ((Stylo) a).getCouleur());
+                unStm.setString(8, "Stylo");
+            } else{
+                //Rajoute la partie de requête spécifique aux ramettes
+                unStm.setInt(6, ((Ramette) a).getGrammage());
+                unStm.setString(8, "Ramette");
+            }
+
+            unStm.executeUpdate();
             //Ajoute une Id à l'article que l'on vient d'intégrer dans la base
             a.setIdArticle(unStm.getGeneratedKeys().getInt(1));
         } catch (SQLException throwables) {
@@ -194,15 +164,71 @@ public class ArticleDAOJdbcImpl {
      */
     public void delete(Integer idArticle){
         //La requête sql permettant de supprimer l'Article
-        String sql = "DELETE FROM Articles WHERE idArticle = " + idArticle +";";
+        String sql = "DELETE FROM Articles WHERE idArticle = ?;";
 
         try (Connection connection = DriverManager.getConnection(this.URL)){
             //Créer un état permettant d'intéraagir avec la base
-            Statement unStm = connection.createStatement();
+            PreparedStatement unStm = connection.prepareStatement(sql);
+            unStm.setInt(1, idArticle);
             //Stock le résultat de la requête
-            unStm.executeUpdate(sql);
+            unStm.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+    }
+
+    /**
+     * Permet de remplir la partie commune à tout les articles des PreparedStatement,
+     * dans les méthodes insert() et update()
+     * @param a L'article que l'on souhaite insérer ou modifier
+     * @param sql La requête sql à remplir
+     * @param connection La connexion à la base de donnée
+     * @return Un PreparedStatement dont le début est déjà rempli
+     * @throws SQLException
+     */
+    private PreparedStatement communPreparedStatement(Article a, String sql, Connection connection) throws SQLException {
+        PreparedStatement unStm = connection.prepareStatement(sql);
+
+        unStm.setString(1, a.getReference());
+        unStm.setString(2, a.getMarque());
+        unStm.setString(3, a.getDesignation());
+        unStm.setFloat(4, a.getPrixUnitaire());
+        unStm.setInt(5, a.getQteStock());
+        return unStm;
+    }
+
+    /**
+     * Permet de créer une méthode commune qui utilise le constructeur de stylo à partir d'un Rseultset
+     * @param rs Le ResultSet contenant les données pour construire le styole
+     * @return Le stylo qui à été créer
+     * @throws SQLException
+     */
+    private Article communConstructeurStylo(ResultSet rs) throws SQLException {
+        Article retour = new Stylo(rs.getInt("idArticle"),
+                rs.getString("reference"),
+                rs.getString("marque"),
+                rs.getString("designation"),
+                rs.getFloat("prixUnitaire"),
+                rs.getInt("qteStock"),
+                rs.getString("couleur"));
+        return retour;
+    }
+
+    /**
+     * Permet de créer une méthode commune qui utilise le constructeur de ramette à partir d'un Rseultset
+     * @param rs Le ResultSet contenant les données pour construire le styole
+     * @return La ramette qui à été créer
+     * @throws SQLException
+     */
+    private Article communConstructeurRamette(ResultSet rs) throws SQLException{
+        Article retour = new Ramette(rs.getInt("idArticle"),
+                rs.getString("reference"),
+                rs.getString("marque"),
+                rs.getString("designation"),
+                rs.getFloat("prixUnitaire"),
+                rs.getInt("qteStock"),
+                rs.getInt("grammage"));
+
+        return retour;
     }
 }
