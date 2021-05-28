@@ -3,14 +3,14 @@ package dal.jdbc;
 import bll.bo.Article;
 import bll.bo.Ramette;
 import bll.bo.Stylo;
+import dal.ArticleDAO;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArticleDAOJdbcImpl {
+public class ArticleDAOJdbcImpl implements ArticleDAO {
 
-    private final String URL ="jdbc:sqlite:identifier.sqlite";
     private final String SQL_SELECT_BY_ID = "SELECT * FROM Articles WHERE idArticle = ?;";
     private final String SQL_SELECT_ALL = "SELECT * FROM Articles;";
     private final String SQL_UPDATE = "UPDATE Articles SET reference=?, marque=?, designation=?, prixUnitaire=?, " +
@@ -27,23 +27,25 @@ public class ArticleDAOJdbcImpl {
     public Article selectById(Integer idArticle){
         Article retour = null;
 
-        try (Connection connection = DriverManager.getConnection(this.URL)) {
+        try (PreparedStatement unStm = JDBCTools.getConnection().prepareStatement(SQL_SELECT_BY_ID)) {
 
-            PreparedStatement unStm = connection.prepareStatement(SQL_SELECT_BY_ID);
             unStm.setInt(1, idArticle);
             //Affecte à la variable retour l'article trouvé
             ResultSet rs = unStm.executeQuery();
 
-            //Vérifie si l'article que l'on a rechercher est un stylo ou une ramette
-            if (rs.getString("couleur") != null){
-                //Si c'est un stylo on crée un stylo
-                //Appel d'une méthode commune qui permet de créer un stylo avec les paramètre d'un ReseltSet
-                retour = communConstructeurStylo(rs);
-            } else {
-                //Si c'est une ramette on crée une ramette
-                //Appel d'une méthode commune qui permet de créer un ramette avec les paramètre d'un ReseltSet
-                retour = communConstructeurRamette(rs);
+            if (rs.next()){
+                //Vérifie si l'article que l'on a rechercher est un stylo ou une ramette
+                if (rs.getString("couleur") != null){
+                    //Si c'est un stylo on crée un stylo
+                    //Appel d'une méthode commune qui permet de créer un stylo avec les paramètre d'un ReseltSet
+                    retour = communConstructeurStylo(rs);
+                } else {
+                    //Si c'est une ramette on crée une ramette
+                    //Appel d'une méthode commune qui permet de créer un ramette avec les paramètre d'un ReseltSet
+                    retour = communConstructeurRamette(rs);
+                }
             }
+
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -57,9 +59,7 @@ public class ArticleDAOJdbcImpl {
     public List<Article> selectAll(){
         List<Article> retour = new ArrayList<>();
 
-        try (Connection connection = DriverManager.getConnection(this.URL)) {
-            //Créer un état permettant d'intéraagir avec la base
-            PreparedStatement unStm = connection.prepareStatement(SQL_SELECT_ALL);
+        try (PreparedStatement unStm = JDBCTools.getConnection().prepareStatement(SQL_SELECT_ALL)) {
             //Stock le résultat de la requête
             ResultSet rs = unStm.executeQuery();
 
@@ -93,10 +93,7 @@ public class ArticleDAOJdbcImpl {
      */
     public void update(Article a){
 
-        try (Connection connection = DriverManager.getConnection(this.URL)) {
-            //Créer un état permettant d'intéragir avec la base
-            //Appel d'une méthode pour remplir la partie commune du PreparedStatement
-            PreparedStatement unStm = communPreparedStatement(a, SQL_UPDATE, connection);
+        try (PreparedStatement unStm = communPreparedStatement(a, SQL_UPDATE, JDBCTools.getConnection())) {
 
             if (a instanceof Stylo){
                 unStm.setString(7, ((Stylo) a).getCouleur());
@@ -117,10 +114,7 @@ public class ArticleDAOJdbcImpl {
      */
     public void insert(Article a){
 
-        try (Connection connection = DriverManager.getConnection(this.URL)){
-            //Créer un état permettant d'intéraagir avec la base
-            //Appel d'une méthode pour remplir la partie commune du PreparedStatement
-            PreparedStatement unStm = communPreparedStatement(a, SQL_INSERT, connection);
+        try (PreparedStatement unStm = communPreparedStatement(a, SQL_INSERT, JDBCTools.getConnection())){
 
             //On vérifie si l'article en paramètre est un stylo où un ramette
             if (a instanceof Stylo){
@@ -135,7 +129,9 @@ public class ArticleDAOJdbcImpl {
 
             unStm.executeUpdate();
             //Ajoute une Id à l'article que l'on vient d'intégrer dans la base
-            a.setIdArticle(unStm.getGeneratedKeys().getInt(1));
+            if (unStm.getGeneratedKeys().next()) {
+                a.setIdArticle(unStm.getGeneratedKeys().getInt(1));
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -147,9 +143,7 @@ public class ArticleDAOJdbcImpl {
      */
     public void delete(Integer idArticle){
 
-        try (Connection connection = DriverManager.getConnection(this.URL)){
-            //Créer un état permettant d'intéraagir avec la base
-            PreparedStatement unStm = connection.prepareStatement(SQL_DELETE);
+        try (PreparedStatement unStm = JDBCTools.getConnection().prepareStatement(SQL_DELETE)){
             unStm.setInt(1, idArticle);
             //Lance la requête
             unStm.executeUpdate();
@@ -185,14 +179,13 @@ public class ArticleDAOJdbcImpl {
      * @throws SQLException
      */
     private Article communConstructeurStylo(ResultSet rs) throws SQLException {
-        Article retour = new Stylo(rs.getInt("idArticle"),
+        return new Stylo(rs.getInt("idArticle"),
                 rs.getString("reference"),
                 rs.getString("marque"),
                 rs.getString("designation"),
                 rs.getFloat("prixUnitaire"),
                 rs.getInt("qteStock"),
                 rs.getString("couleur"));
-        return retour;
     }
 
     /**
@@ -202,14 +195,12 @@ public class ArticleDAOJdbcImpl {
      * @throws SQLException
      */
     private Article communConstructeurRamette(ResultSet rs) throws SQLException{
-        Article retour = new Ramette(rs.getInt("idArticle"),
+        return new Ramette(rs.getInt("idArticle"),
                 rs.getString("reference"),
                 rs.getString("marque"),
                 rs.getString("designation"),
                 rs.getFloat("prixUnitaire"),
                 rs.getInt("qteStock"),
                 rs.getInt("grammage"));
-
-        return retour;
     }
 }

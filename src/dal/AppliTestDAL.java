@@ -1,20 +1,19 @@
-package dal.jdbc;
+package dal;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 
 import bll.bo.Article;
 import bll.bo.Ramette;
 import bll.bo.Stylo;
+import dal.ArticleDAO;
+import dal.DAOFactory;
 
 public class AppliTestDAL {
 
 	public static void main(String[] args) {
 
 		//Déclaration et instanciation de la DAO
-		ArticleDAOJdbcImpl articleDAO = new ArticleDAOJdbcImpl();
+		 ArticleDAO articleDAO = DAOFactory.getArticleDAO();
 
 		//Instanciation du jeu d'essai 
 		Article a1 = new Stylo( "Bic", "BBOrange","Bic bille Orange", 1.2f, 20, "bleu");
