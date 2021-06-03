@@ -427,7 +427,8 @@ public class GUI extends JFrame {
                         try {
                             cm.addArticle(a);
                             catalogue = cm.getCatalogue();
-                            expose = catalogue.get(catalogue.indexOf(a));
+                            expose = catalogue.get(catalogue.size()-1);
+                            changerAffichageArticle(expose);
                             getCompteur().setText(catalogue.indexOf(expose)+1+"/"+catalogue.size());
                             getPrecedant().setEnabled(true);
                             getSauvegarder().setEnabled(true);
@@ -476,7 +477,10 @@ public class GUI extends JFrame {
                                     choixCouleur.getSelectedItem().toString());
                         }
                         try {
+                            int tmp = catalogue.indexOf(expose);
                             cm.updateArticle(a);
+                            catalogue = cm.getCatalogue();
+                            expose = catalogue.get(tmp);
                         } catch (BLLException bllException) {
 
                         }
@@ -503,7 +507,7 @@ public class GUI extends JFrame {
                         cm.removeArticle(expose.getIdArticle());
                         catalogue = cm.getCatalogue();
                         if (!catalogue.isEmpty()){
-                            expose = catalogue.get(catalogue.indexOf(expose));
+                            expose = catalogue.get(0);
                             changerAffichageArticle(expose);
                             getCompteur().setText(catalogue.indexOf(expose)+1+"/"+catalogue.size());
                         } else {
