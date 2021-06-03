@@ -29,14 +29,13 @@ public class GUI extends JFrame {
 
     private CatalogueManager cm = CatalogueManager.getInstance();
     private List<Article> catalogue = new ArrayList<>();
-    private int index = 0;
     private Article expose;
 
     public GUI() {
         super("Mon application");
         catalogue = cm.getCatalogue();
         if (!catalogue.isEmpty()) {
-            expose = catalogue.get(index);
+            expose = catalogue.get(0);
         }
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(450,600);
@@ -213,11 +212,11 @@ public class GUI extends JFrame {
             if (catalogue.isEmpty()){
                 label = "0/0";
             }else {
-                label = index+1 +"/"+catalogue.size();
+                label = catalogue.indexOf(expose)+1 +"/"+catalogue.size();
             }
-            couleur = new JLabel(label);
+            compteur = new JLabel(label);
         }
-        return couleur;
+        return compteur;
     }
 
     public JTextField getTReference() {
@@ -386,14 +385,12 @@ public class GUI extends JFrame {
             precedant.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (index == 0){
-                        index = catalogue.size()-1;
+                    if (catalogue.indexOf(expose) == 0){
+                        expose = catalogue.get(catalogue.size()-1);
                     }else {
-                        index--;
+                        expose = catalogue.get(catalogue.indexOf(expose)-1);
                     }
-                    getCompteur().setText(index+1+"/"+catalogue.size());
-                    getCompteur().repaint();
-                    expose = catalogue.get(index);
+                    getCompteur().setText(catalogue.indexOf(expose)+1+"/"+catalogue.size());
                     changerAffichageArticle(expose);
                 }
             });
@@ -429,13 +426,9 @@ public class GUI extends JFrame {
                         }
                         try {
                             cm.addArticle(a);
-                            index++;
-                            if (expose == null){
-                                expose = catalogue.get(index);
-                            }
                             catalogue = cm.getCatalogue();
-                            getCompteur().setText(index+1+"/"+catalogue.size());
-                            getCompteur().repaint();
+                            expose = catalogue.get(catalogue.indexOf(a));
+                            getCompteur().setText(catalogue.indexOf(expose)+1+"/"+catalogue.size());
                             getPrecedant().setEnabled(true);
                             getSauvegarder().setEnabled(true);
                             getSupprimer().setEnabled(true);
@@ -510,13 +503,11 @@ public class GUI extends JFrame {
                         cm.removeArticle(expose.getIdArticle());
                         catalogue = cm.getCatalogue();
                         if (!catalogue.isEmpty()){
-                            expose = catalogue.get(index);
+                            expose = catalogue.get(catalogue.indexOf(expose));
                             changerAffichageArticle(expose);
-                            getCompteur().setText(index+1+"/"+catalogue.size());
-                            getCompteur().repaint();
+                            getCompteur().setText(catalogue.indexOf(expose)+1+"/"+catalogue.size());
                         } else {
                             getCompteur().setText("0/0");
-                            getCompteur().repaint();
                             getTReference().setText(null);
                             getTMarque().setText(null);
                             getTDesignation().setText(null);
@@ -555,14 +546,12 @@ public class GUI extends JFrame {
             suivant.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (index+1 == catalogue.size()){
-                        index = 0;
+                    if (catalogue.indexOf(expose) == catalogue.size()-1){
+                        expose = catalogue.get(0);
                     }else{
-                        index++;
+                        expose = catalogue.get(catalogue.indexOf(expose)+1);
                     }
-                    getCompteur().setText(index+1+"/"+catalogue.size());
-                    getCompteur().repaint();
-                    expose = catalogue.get(index);
+                    getCompteur().setText(catalogue.indexOf(expose)+1+"/"+catalogue.size());
                     changerAffichageArticle(expose);
                 }
             });
@@ -588,6 +577,7 @@ public class GUI extends JFrame {
             getChoixCouleur().setEnabled(false);
         } else {
             getTypeStylo().doClick();
+            getGroupeGrammage().clearSelection();
             getChoixCouleur().setEnabled(true);
             getChoixCouleur().setSelectedItem(Couleur.valueOf(((Stylo) expose).getCouleur()));
             getPremierGrammage().setEnabled(false);
